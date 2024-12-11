@@ -8,6 +8,7 @@ import { Routes, Route } from 'react-router-dom'; // Import Routes i Route
 import Home from './pages/Home';
 import BookRecommendations from './pages/BookRecommendations';
 import SelectedBook from './pages/SelectedBook';
+import Chat from './components/Chat';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/BooksRecommendations" element={<BookRecommendations />} />
         <Route path="/SelectedBook" element={<SelectedBook/>} />
+        <Route path='/chat' element={<Chat/>}/>
       </Routes>
     </div>
   );
