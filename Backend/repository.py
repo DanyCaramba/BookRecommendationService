@@ -3,7 +3,7 @@ from pymilvus import connections, Collection, MilvusException,utility,AnnSearchR
 import ast
 import json
 import re
-jina_api_key = "xxxxx"
+jina_api_key = "jina_7eee70051caf443dad445b5b9627a3b8Qeo5iJOb4jgbIO-onOnig_rRr89A"
 
 def initializeJina():
     global ef
