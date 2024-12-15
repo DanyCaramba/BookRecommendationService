@@ -8,29 +8,102 @@ import {
   MessageInput,
 } from "@chatscope/chat-ui-kit-react";
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import OpenAIComponent from "./OpenAIComponent";
+
+async function getCompletion(message, conversationHistory) {
+  try {
+      const respone = await fetch('http://localhost:5000/api/openai/continue', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              message: message,
+              history: conversationHistory
+          }),
+      });
+
+      if (!respone.ok) {
+          throw new Error('Failed to fetch completion from backend');
+      }
+
+      const data = await respone.json();
+
+      const responseMessage = {
+        role: data.role,
+        content: data.content
+      };
+
+      console.log(responseMessage);
+      return responseMessage;
+  } catch (error) {
+      console.error('Error: ', error);
+  }
+}
+
+async function summarizeConversation(conversationHistory) {
+  try {
+    const respone = await fetch('http://localhost:5000/api/openai/summarize', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        history: conversationHistory
+      }),
+    });
+
+    if (!respone.ok) {
+      throw new Error('Failed to fetch summarization from backed');
+    }
+
+    const data = await respone.json();
+
+    const summarization = data.content
+    console.log(summarization);
+
+    return summarization;
+  } catch(error) {
+    console.error('Error: ', error);
+  }
+}
+
+async function startChat() {
+  try {
+      const respone = await fetch('http://localhost:5000/api/openai/start', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+          }),
+      });
+
+      if (!respone.ok) {
+          throw new Error('Failed to fetch completion from backend');
+      }
+
+      const data = await respone.json();
+      const message = {
+        role: data.role,
+        content: data.content
+      };
+
+      // console.log(message);
+      return message;
+  } catch (error) {
+      console.error('Error: ', error);
+  }
+}
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [start, setStart] = useState(false);
-
-  const [userPreferences, setUserPreferences] = useState({
-    genre: "",
-    mood: "",
-    focus: "",
-    length: "",
-    author: ""
-  });
-
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-
-  const questions = [
-    "Jakiego gatunku książki szukasz? (Powieść, kryminał, fantastyka, literatura faktu, biografia)",
-    "Czy preferujesz książki z bardziej mrocznym czy pełnym przygód nastrojem?",
-    "Czy interesują Cię książki z wątkiem romantycznym, czy raczej szukasz opowieści skoncentrowanej na akcji?",
-    "Jak długo chciałbyś spędzić czas z książką? Krótkie opowieści czy bardziej rozbudowane powieści?",
-    "Masz preferencje co do autora lub serii książek?"
-  ];
+  const [conversationHistory, setConversationHistory] = useState([]);
+  const recommendationKeywords = ["rekomendacje", "chce rekomendacje"];
+  let questionCount = 0;
+  const maxQuestions = 4;
   
   // Use the SpeechRecognition hook from react-speech-recognition
   const {
@@ -52,9 +125,18 @@ const Chat = () => {
     window.speechSynthesis.speak(msg);
   };
 
-  const handleStartButton = () => {
+  const handleStartButton = async () => {
     const systemMessage = { message: "Cześć, mogę polecić Ci książki. Jaki gatunek Cię interesuje?", sender: "System", direction: 'incoming' };
     addMessage(systemMessage.message, systemMessage.sender, systemMessage.direction);
+
+    const initMessage = await startChat()
+    console.log(initMessage);
+
+    setConversationHistory(prevHistory => [
+      ...prevHistory,
+      initMessage
+    ]);
+
     setStart(true);
   }
 
@@ -71,33 +153,58 @@ const Chat = () => {
   };
 
   // Handle message send
-  const handleSend = () => {
-    // if (inputMessage.trim()) {
-    //   addMessage(inputMessage, "User", "outgoing");
-    //   setInputMessage('');
-    //   // Simulate a system response
-    //   addMessage("Oto książka, którą mogę Ci polecić: 'Wielki Gatsby'", "System", "incoming");
-    // }
+  const handleSend = async () => {
     if (inputMessage.trim()) {
         const newMessages = [...messages, { message: inputMessage, sender: "User", direction: 'outgoing' }];
         setMessages(newMessages);
 
-        const questionKey = Object.keys(userPreferences)[currentQuestion];
-        setUserPreferences({
-            ...userPreferences,
-            [questionKey]: inputMessage
-        });
+        const lowerCasedInput = inputMessage.toLocaleLowerCase();
+        const wantsRecommendation = recommendationKeywords.some(keyword => lowerCasedInput.includes(keyword));
 
-        setInputMessage('');
+        if ((questionCount < maxQuestions) && !wantsRecommendation) {
+          const nextQuestion = await getCompletion(inputMessage, conversationHistory);
 
-        if (currentQuestion < questions.length - 1) {
-            setCurrentQuestion(currentQuestion + 1);
-            setMessages(prevMessages => [
-                ...prevMessages,
-                { message: questions[currentQuestion + 1], sender: "System", direction: 'incoming' }
-            ]);
+          setConversationHistory(prevHistory => [
+            ...prevHistory,
+            {
+              role: 'user',
+              content: inputMessage
+            }
+          ]);
+  
+          setConversationHistory(prevHistory => [
+            ...prevHistory,
+            nextQuestion
+          ]);
+  
+          setInputMessage('');
+  
+          setMessages(prevMessages => [
+            ...prevMessages,
+            { message: nextQuestion.content, sender: "System", direction: 'incoming' }
+          ]);
+
+          questionCount++;
+
+          if (questionCount >= maxQuestions) {
+            const lastMessage = {
+              message: "Dziękuję za przesłane informacje, przetwarzam teraz rekomendacje na podstawie Twoich odpowiedzi.",
+              sender: "System",
+              direction: "incoming"
+            };
+
+            setMessages(prevMessages => [...prevMessages, lastMessage])
+            const summarization = await summarizeConversation(conversationHistory);
+          }
         } else {
-            recommendBook();
+          const lastMessage = {
+            message: "Rozumiem, przetwarzam teraz rekomendacje na podstawie Twoich odpowiedzi.",
+            sender: "System",
+            direction: "incoming"
+          };
+
+          setMessages(prevMessages => [...prevMessages, lastMessage])
+          const summarization = await summarizeConversation(conversationHistory);
         }
     }
   };
@@ -134,10 +241,11 @@ const Chat = () => {
   }, [transcript]);
 
   return (
-    <div className="">
+    <div className="bg-zinc-800 h-screen text-slate-200 pt-10">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Aplikacja do rekomendacji książek</h1>
-        <h2 className="text-xl font-bold text-gray-800 mb-6">Jak będziesz gotowy kliknij przycisk poniżej</h2>
+        <h1 className="text-3xl font-bold mb-6">Witaj w Apilikacji do rekomendacji książek</h1>
+
+        <h2 className="text-xl font-bold mb-6">Jak będziesz gotowy kliknij przycisk poniżej</h2>
         <button
           className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
           onClick={handleStartButton}
@@ -146,10 +254,10 @@ const Chat = () => {
           START
         </button>
       </div>
-      <div className="w-96 mx-auto mt-10" style={{ height: "600px" }}>
-        <MainContainer>
-          <ChatContainer>
-            <MessageList>
+      <div className="w-96 mx-auto mt-10">
+        <MainContainer  style={{ height: "600px", borderRadius: "20px", backgroundColor: "#3f3f46"}}>
+          <ChatContainer style={{}}>
+            <MessageList style={{backgroundColor: "#3f3f46", borderWidth: "0px"}}>
               {messages.map((msg, index) => (
                 <Message
                   key={index}
@@ -166,14 +274,14 @@ const Chat = () => {
               value={inputMessage}
               onChange={handleInputChange}
               onSend={handleSend}
-              placeholder="Napisz wiadomość"
+              placeholder="Kliknij Rozpocznij"
+              style={{backgroundColor: "#4b5563"}}
             />
           </ChatContainer>
         </MainContainer>
 
-        {/* Speech Recognition Controls */}
         <div className="flex flex-col items-center mt-4">
-          <p className="text-lg font-semibold mb-4">
+          <p className="text-lg font-semibold mb-4 text-slate-200">
             Mikrofon: <span className={`font-bold ${listening ? 'text-green-500' : 'text-red-500'}`}>{listening ? 'WŁĄCZONY' : 'WYŁĄCZONY'}</span>
           </p>
           <div className="flex space-x-4 mb-4">
@@ -198,6 +306,7 @@ const Chat = () => {
             >
               Powtórz wiadomość
             </button>
+            {/* <OpenAIComponent/> */}
           </div>
         </div>
       </div>
