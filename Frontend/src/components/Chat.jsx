@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'; 
 import React, { useState, useEffect,useContext } from "react";
 import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import ReactLoading from 'react-loading';
 import {
   MainContainer,
   ChatContainer,
@@ -100,6 +101,7 @@ async function startChat() {
 
 
 const Chat = () => {
+  const [loading, setLoading] = useState(false); // Dodano stan ładowania
   const navigate = useNavigate(); // Hook do nawigacji
   const { setBookRecommendations } = useContext(RecommendationsContext);
   const [messages, setMessages] = useState([]);
@@ -201,8 +203,9 @@ const Chat = () => {
             };
 
             setMessages(prevMessages => [...prevMessages, lastMessage])
+            setLoading(true);
             const summarization = await summarizeConversation(conversationHistory);
-            sendSummaryToBackend(summarization);
+            await sendSummaryToBackend(summarization, setBookRecommendations);
           }
         } else {
           const lastMessage = {
@@ -212,6 +215,7 @@ const Chat = () => {
           };
 
           setMessages(prevMessages => [...prevMessages, lastMessage])
+          setLoading(true);
           const summarization = await summarizeConversation(conversationHistory);
           await sendSummaryToBackend(summarization, setBookRecommendations);
         }
@@ -245,7 +249,7 @@ const Chat = () => {
       const parsedBooks = JSON.parse(data.data).flat(); // Parsuj dane z backendu
       setBookRecommendations(parsedBooks); // Zapisz w kontekście
       console.log("Books saved to context:", parsedBooks);
-      //tutaj chce loading screena
+
       navigate('/BooksRecommendations');
       return data;
     } catch (error) {
@@ -254,17 +258,11 @@ const Chat = () => {
   }
 
 
+  const Load = ({ type, color }) => (
+    <ReactLoading type={type} color={color} height={667} width={375} />
+);
 
 
-
-  //funkcja do wywołania backendu
-  const recommendBook = () => {
-    // Here you can analyze the answers in `userPreferences` and give recommendations
-    setMessages(prevMessages => [
-      ...prevMessages,
-      { message: "Na podstawie Twoich odpowiedzi, polecam Ci książkę 'Wielki Gatsby' F. Scotta Fitzgeralda!", sender: "System", direction: 'incoming' }
-    ]);
-  };
 
   // Handle start listening for speech recognition
   const handleStartListening = () => {
@@ -288,6 +286,13 @@ const Chat = () => {
     }
   }, [transcript]);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-zinc-800">
+        <ReactLoading type="bars" color="#FFFFFF" height={100} width={100} />
+      </div>
+    );
+  }
   return (
     <div className="bg-zinc-800 h-screen text-slate-200 pt-10">
       <div className="text-center">
