@@ -22,40 +22,42 @@ function SelectedBook() {
     }
 
     return (
-        <div className="bg-gray-100 min-h-screen p-6 flex flex-col items-center">
-            <div className="bg-white rounded-lg shadow-md w-[1000px] h-[800px] p-4 ">
+        <div className="bg-zinc-800 min-h-screen p-6 flex flex-col items-center">
+            <div className="bg-[#525252] rounded-lg shadow-md w-[1000px] h-[800px] p-4 ">
                 <div className="flex h-[90%] ">
                     <div className="bg-red-300 w-[50%] h-[95%] rounded-lg">
                         <img
-                            src={book.image}
+                            src={book.cover}
                             alt={book.title}
                             className=" w-full h-full object-cover rounded ">
                         </img>
                     </div>
-                    <div className="ml-10 w-[50%] h-[90%] rounded-lg p-4 overflow-auto">
-                        <h1 className="text-4xl font-bold mb-4 text-gray-800 text-center">{book.title}</h1>
-                        <p className="text-gray-700 mb-2 text-2xl">
-                            <strong>Original Title:</strong> {book.originalTitle}
-                        </p>
-                        <p className="text-gray-700 mb-2 text-2xl">
+                    <div className="ml-10 w-[50%] h-[90%] rounded-lg p-4 overflow-auto ">
+                        <div className="bg-[#404040] w-[100%]  p-3 rounded-lg">
+                        <h1 className="text-4xl font-bold mb-4 text-[#fafafa] text-center">{book.title}</h1>
+                        <p className="text-[#fafafa] mb-2 text-2xl">
                             <strong>Author:</strong> {book.author}
                         </p>
-                        <p className="text-gray-700 mb-2 text-2xl">
+                        <p className="text-[#fafafa] mb-2 text-2xl">
                             <strong>Publisher:</strong> {book.publisher}
                         </p>
-                        <p className="text-gray-700 mb-2 text-2xl">
+                        <p className="text-[#fafafa] mb-2 text-2xl">
                             <strong>Category:</strong> {book.category}
                         </p>
-                        <p className="text-gray-700 mb-2 text-2xl">
+                        <p className="text-[#fafafa] mb-2 text-2xl">
                             <strong>Pages:</strong> {book.pages}
                         </p>
-                        <p className="text-gray-700 mb-12 text-2xl">
-                            <strong>Tags:</strong> {book.tags.join(', ')}
+                        <p className="text-[#fafafa] mb-12 text-2xl">
+                        <strong>Tags:</strong> {book.tags}
                         </p>
-                        <p className=" text-gray-700  text-2xl text-center">
+                        </div>
+                        <div className="bg-[#404040] w-[100%]  p-3 rounded-lg mt-6">
+                        <p className="text-[#fafafa]  text-2xl text-center">
                             <strong>Description:</strong>
                             <p> {book.description}</p>
                         </p>
+                        </div>
+                     
                     </div>
                 </div>
                 <div className="flex justify-center items-center  ">

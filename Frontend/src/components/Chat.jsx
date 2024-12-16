@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom'; 
+import React, { useState, useEffect,useContext } from "react";
 import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import {
   MainContainer,
@@ -9,7 +10,8 @@ import {
 } from "@chatscope/chat-ui-kit-react";
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import OpenAIComponent from "./OpenAIComponent";
-
+import { RecommendationsContext } from "./RecommendationsContext";
+import PreLoader1 from './PreLoader1';
 async function getCompletion(message, conversationHistory) {
   try {
       const respone = await fetch('http://localhost:5000/api/openai/continue', {
@@ -59,9 +61,8 @@ async function summarizeConversation(conversationHistory) {
 
     const data = await respone.json();
 
-    const summarization = data.content
+    const  summarization = data.content
     console.log(summarization);
-
     return summarization;
   } catch(error) {
     console.error('Error: ', error);
@@ -96,7 +97,11 @@ async function startChat() {
   }
 }
 
+
+
 const Chat = () => {
+  const navigate = useNavigate(); // Hook do nawigacji
+  const { setBookRecommendations } = useContext(RecommendationsContext);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [start, setStart] = useState(false);
@@ -152,6 +157,8 @@ const Chat = () => {
     setInputMessage(e.target.value);  // Set the input value in the state
   };
 
+
+
   // Handle message send
   const handleSend = async () => {
     if (inputMessage.trim()) {
@@ -195,6 +202,7 @@ const Chat = () => {
 
             setMessages(prevMessages => [...prevMessages, lastMessage])
             const summarization = await summarizeConversation(conversationHistory);
+            sendSummaryToBackend(summarization);
           }
         } else {
           const lastMessage = {
@@ -205,9 +213,49 @@ const Chat = () => {
 
           setMessages(prevMessages => [...prevMessages, lastMessage])
           const summarization = await summarizeConversation(conversationHistory);
+          await sendSummaryToBackend(summarization, setBookRecommendations);
         }
     }
   };
+
+
+
+
+
+  async function sendSummaryToBackend(summarization, setBookRecommendations) {
+    try {
+      const response = await fetch('http://172.25.161.17:5041/recommendation/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          string: summarization,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to send summary to backend');
+      }
+  
+      const data = await response.json();
+      console.log('Summary successfully sent to backend:', data);
+  
+      // Zapisz dane w kontekście
+      const parsedBooks = JSON.parse(data.data).flat(); // Parsuj dane z backendu
+      setBookRecommendations(parsedBooks); // Zapisz w kontekście
+      console.log("Books saved to context:", parsedBooks);
+      //tutaj chce loading screena
+      navigate('/BooksRecommendations');
+      return data;
+    } catch (error) {
+      console.error('Error sending summary to backend:', error);
+    }
+  }
+
+
+
+
 
   //funkcja do wywołania backendu
   const recommendBook = () => {
