@@ -12,7 +12,7 @@ import {
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import OpenAIComponent from "./OpenAIComponent";
 import { RecommendationsContext } from "./RecommendationsContext";
-import PreLoader1 from './PreLoader1';
+
 async function getCompletion(message, conversationHistory) {
   try {
       const respone = await fetch('http://localhost:5000/api/openai/continue', {
@@ -100,7 +100,7 @@ async function startChat() {
 
 
 
-const Chat = () => {
+const Chat = ({ sidebar }) => {
   const [loading, setLoading] = useState(false); // Dodano stan ładowania
   const navigate = useNavigate(); // Hook do nawigacji
   const { setBookRecommendations } = useContext(RecommendationsContext);
@@ -133,7 +133,8 @@ const Chat = () => {
   };
 
   const handleStartButton = async () => {
-    const systemMessage = { message: "Cześć, mogę polecić Ci książki. Jaki gatunek Cię interesuje?", sender: "System", direction: 'incoming' };
+    const greetings = sidebar ? "Potrzebujesz dalszej rekomendacji lub poprzednie wyniki nie były dokładne?" : "Cześć, mogę polecić Ci książki. Jaki gatunek Cię interesuje?"
+    const systemMessage = { message: greetings, sender: "System", direction: 'incoming' };
     addMessage(systemMessage.message, systemMessage.sender, systemMessage.direction);
 
     const initMessage = await startChat()
@@ -294,20 +295,14 @@ const Chat = () => {
     );
   }
   return (
-    <div className="bg-zinc-800 h-screen text-slate-200 pt-10">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-6">Witaj w Apilikacji do rekomendacji książek</h1>
-
-        <h2 className="text-xl font-bold mb-6">Jak będziesz gotowy kliknij przycisk poniżej</h2>
-        <button
-          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+      <div className="w-96 mx-auto mt-10 flex flex-col gap-5">
+      <button
+          className="px-4 py-2 w-fit self-center bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
           onClick={handleStartButton}
           disabled={start}
         >
           START
         </button>
-      </div>
-      <div className="w-96 mx-auto mt-10">
         <MainContainer  style={{ height: "600px", borderRadius: "20px", backgroundColor: "#3f3f46"}}>
           <ChatContainer style={{}}>
             <MessageList style={{backgroundColor: "#3f3f46", borderWidth: "0px"}}>
@@ -363,7 +358,6 @@ const Chat = () => {
           </div>
         </div>
       </div>
-    </div>
   );
 };
 

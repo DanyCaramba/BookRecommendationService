@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import BookRecommendations from './pages/BookRecommendations';
 import SelectedBook from './pages/SelectedBook';
 import Chat from './components/Chat';
+import ChatFull from './components/ChatFull';
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/BooksRecommendations" element={<BookRecommendations />} />
         <Route path="/SelectedBook" element={<SelectedBook/>} />
-        <Route path='/chat' element={<Chat/>}/>
+        <Route path='/chat' element={<ChatFull/>}/>
       </Routes>
     </div>
   );
