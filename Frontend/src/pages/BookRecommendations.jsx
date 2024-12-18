@@ -87,7 +87,7 @@ const { bookRecommendations } = useContext(RecommendationsContext);
         )}
       </div>
       <div 
-        className={`bg-blue-500 h-16 w-16 absolute bottom-1 right-96 animate-bounce flex items-center justify-center rounded-3xl border-2 p-1
+        className={`bg-blue-500 h-16 w-16 fixed bottom-1 right-96 animate-bounce flex items-center justify-center rounded-3xl border-2 p-1
           ${isVisible ? "translate-x-20" : "translate-x-0"}
           transition-all duration-500 ease-in-out`}
         onClick={() => setIsVisible(!isVisible)}>
@@ -109,7 +109,7 @@ const { bookRecommendations } = useContext(RecommendationsContext);
         </svg>
       </div>
       <div
-        className={`absolute right-0 top-1/2 transform -translate-y-1/2 ${
+        className={`fixed right-0 top-1/2 transform -translate-y-1/2 ${
           isVisible ? "-translate-x-10 opacity-100" : "translate-x-0 opacity-0"
         } transition-all duration-500 ease-in-out`}
       >
