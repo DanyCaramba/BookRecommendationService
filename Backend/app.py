@@ -20,3 +20,9 @@ async def get_recommendation(info: Info):
     print(recommendation)
 
     return {"data":recommendation}
+
+@app.post("/api/openai/start")
+async def startChat():
+    res = repository.startOpenAI()
+
+    return res

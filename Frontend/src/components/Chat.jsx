@@ -72,7 +72,7 @@ async function summarizeConversation(conversationHistory) {
 
 async function startChat() {
   try {
-      const respone = await fetch('http://localhost:5000/api/openai/start', {
+      const respone = await fetch('http://172.25.161.17:5041/api/openai/start', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ async function startChat() {
         content: data.content
       };
 
-      // console.log(message);
+      console.log("msg from py"+message);
       return message;
   } catch (error) {
       console.error('Error: ', error);

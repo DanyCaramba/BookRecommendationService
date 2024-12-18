@@ -3,9 +3,19 @@ from pymilvus import connections, Collection, MilvusException,utility,AnnSearchR
 import ast
 import json
 import re
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+load_dotenv()  
 jina_api_key = "xxxxx"
+openAikey=""
+client = OpenAI()
+MODEL="gpt-4o-mini"
+client.api_key = os.getenv("OPENAI_API_KEY")
+
 
 def initializeJina():
+    
     global ef
     ef = JinaEmbeddingFunction(
         "jina-embeddings-v3", 
@@ -33,6 +43,17 @@ def createSingleEmbedd(text):
     print(embeddings[0])
     return embeddings
 
+def startOpenAI():
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", 
+             "content": "Jesteś pomocnym asystentem. Twoim zadaniem jest zadawanie użytkownikowi pytań dotyczących jego preferencji książkowych i dostosowywanie każdego pytania na podstawie jego poprzednich odpowiedzi. Śledź ich odpowiedzi, aby zebrać wystarczającą ilość informacji do przedstawienia rekomendacji książkowych."},
+            {"role": "assistant", 
+             "content": "W oparciu o poprzednie odpowiedzi użytkownika, zadaj kolejne najbardziej odpowiednie pytanie dotyczące jego preferencji książkowych. Dostosuj pytanie do tego, co już udostępnił."}
+        ]
+    )
+    return response.choices[0].message
 
 
 
