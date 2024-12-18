@@ -15,7 +15,7 @@ import { RecommendationsContext } from "./RecommendationsContext";
 
 async function getCompletion(message, conversationHistory) {
   try {
-      const respone = await fetch('http://localhost:5000/api/openai/continue', {
+      const respone = await fetch('http://172.25.161.17:5041/api/openai/continue', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ async function getCompletion(message, conversationHistory) {
 
 async function summarizeConversation(conversationHistory) {
   try {
-    const respone = await fetch('http://localhost:5000/api/openai/summarize', {
+    const respone = await fetch('http://172.25.161.17:5041/api/openai/summarize', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ const Chat = ({ sidebar }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [start, setStart] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
-  const recommendationKeywords = ["rekomendacje", "chce rekomendacje"];
+  const recommendationKeywords = ["rekomendacje", "chce rekomendacje","rekomendację"];
   let questionCount = 0;
   const maxQuestions = 4;
   

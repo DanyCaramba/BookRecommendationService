@@ -6,6 +6,7 @@ import re
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from typing import List, Dict, Any
 load_dotenv()  
 jina_api_key = "xxxxx"
 openAikey=""
@@ -19,7 +20,7 @@ def initializeJina():
     global ef
     ef = JinaEmbeddingFunction(
         "jina-embeddings-v3", 
-        jina_api_key,
+        os.getenv("jina_api_key"),
         task="text-matching",
         dimensions=1024
     )
@@ -54,8 +55,37 @@ def startOpenAI():
         ]
     )
     return response.choices[0].message
+def continueOpenAI(message: str, history: List[Dict[str, Any]]):
+    try:
+        messages = [
+            {"role": "system", "content": "Jesteś pomocnym asystentem. Twoim zadaniem jest zadawanie użytkownikowi pytań dotyczących jego preferencji książkowych i dostosowywanie każdego pytania na podstawie jego poprzednich odpowiedzi. \n             Śledź ich odpowiedzi, aby zebrać wystarczającą ilość informacji do przedstawienia rekomendacji książkowych.\n             Jeśli uważasz, że użytkownik dostarczył już wystarczająco informacji, zaproponuj, aby powiedział 'Chcę rekomendację' aby przejść do procesu rekomendacji."},
+            {"role": "assistant", "content": "W oparciu o poprzednie odpowiedzi użytkownika, zadaj kolejne najbardziej odpowiednie pytanie dotyczące jego preferencji książkowych. Dostosuj pytanie do tego, co już udostępnił."},
+            *history,
+            {"role": "user", "content": message}
+        ]
 
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=messages
+        )
+        return response.choices[0].message
+    except Exception as e:
+        print(f"Error calling OpenAI API: {e}")
 
+def summaryOpenAI(history: List[Dict[str, Any]]):
+    try:
+        messages = [
+            {"role": "system", "content": "Jesteś asystentem podsumowującym konstruując dobrą odpowiedź do wyszukiwania wektorowego, dodaj pasujące słowa kluczowe dla lepszego znalezienia podobieństw. Twoim zadaniem jest zebranie odpowiedzi użytkownika oraz pytań asystenta i wygenerowanie dobrze skonstruowanego podsumowania. Odpowiedź ma być w postaci jednego ciągu znaków."},
+            *history
+        ]
+
+        response =  client.chat.completions.create(
+            model=MODEL,
+            messages=messages
+        )
+        return response.choices[0].message
+    except Exception as e:
+        print(f"Error calling OpenAI API: {e}")
 
 def returnRecommendation(prompt):
     print("!!!!Wchodze do multisearxh")
