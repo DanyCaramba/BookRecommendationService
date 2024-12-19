@@ -15,10 +15,9 @@ function App() {
   return (
     <div>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/BooksRecommendations" element={<BookRecommendations />} />
+        <Route path="/" element={<ChatFull/>} />
+        <Route path="/BooksRecommendations" element={<BookRecommendations/>} />
         <Route path="/SelectedBook" element={<SelectedBook/>} />
-        <Route path='/chat' element={<ChatFull/>}/>
       </Routes>
     </div>
   );

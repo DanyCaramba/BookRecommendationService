@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect,useContext } from "react";
 import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import ReactLoading from 'react-loading';
+import { useLocation } from 'react-router-dom';
 import {
   MainContainer,
   ChatContainer,
@@ -101,14 +102,16 @@ async function startChat() {
 
 
 const Chat = ({ sidebar }) => {
+  const location = useLocation();
   const [loading, setLoading] = useState(false); // Dodano stan ładowania
   const navigate = useNavigate(); // Hook do nawigacji
   const { setBookRecommendations } = useContext(RecommendationsContext);
+  const { loading2, setLoading2 } = useContext(RecommendationsContext);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [start, setStart] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
-  const recommendationKeywords = ["rekomendacje", "chce rekomendacje","rekomendację"];
+  const recommendationKeywords = ["rekomendacje", "chce rekomendacje","rekomendację","rekomendacja"];
   let questionCount = 0;
   const maxQuestions = 4;
   
@@ -204,7 +207,12 @@ const Chat = ({ sidebar }) => {
             };
 
             setMessages(prevMessages => [...prevMessages, lastMessage])
-            setLoading(true);
+            if (location.pathname === '/') {
+              setLoading(true);
+            }
+            else{
+              setLoading2(true)
+            }
             const summarization = await summarizeConversation(conversationHistory);
             await sendSummaryToBackend(summarization, setBookRecommendations);
           }
@@ -216,7 +224,13 @@ const Chat = ({ sidebar }) => {
           };
 
           setMessages(prevMessages => [...prevMessages, lastMessage])
-          setLoading(true);
+          if (location.pathname === '/') {
+            setLoading(true);
+            
+          }
+          else{
+            setLoading2(true)
+          }
           const summarization = await summarizeConversation(conversationHistory);
           await sendSummaryToBackend(summarization, setBookRecommendations);
         }
@@ -252,6 +266,8 @@ const Chat = ({ sidebar }) => {
       console.log("Books saved to context:", parsedBooks);
 
       navigate('/BooksRecommendations');
+      setLoading(false);
+      setLoading2(false);
       return data;
     } catch (error) {
       console.error('Error sending summary to backend:', error);
@@ -334,21 +350,21 @@ const Chat = ({ sidebar }) => {
           </p>
           <div className="flex space-x-4 mb-4">
             <button
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+              className="hover:cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
               onClick={handleStartListening}
               disabled={!start}
             >
               Rozpocznij
             </button>
             <button
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+              className="hover:cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
               onClick={handleStopListening}
               disabled={!start}
             >
               Zatrzymaj
             </button>
             <button
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+              className="hover:cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
               onClick={handleReset}
               disabled={!start}
             >
