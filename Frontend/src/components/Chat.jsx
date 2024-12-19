@@ -135,6 +135,27 @@ const Chat = ({ sidebar }) => {
     window.speechSynthesis.speak(msg);
   };
 
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      const targetDiv = document.getElementById('message-input');
+      if (targetDiv) {
+        targetDiv.click();
+
+        const enterEvent = new KeyboardEvent('keydown', {
+          key: 'Enter',
+          code: 'Enter',
+          keyCode: 13,
+          which: 13,
+          bubbles: true
+        });
+
+        document.dispatchEvent(enterEvent);
+      }
+
+      event.preventDefault();
+    }
+  };
+
   const handleStartButton = async () => {
     const greetings = sidebar ? "Potrzebujesz dalszej rekomendacji lub poprzednie wyniki nie były dokładne?" : "Cześć, mogę polecić Ci książki. Jaki gatunek Cię interesuje?"
     const systemMessage = { message: greetings, sender: "System", direction: 'incoming' };
@@ -158,9 +179,23 @@ const Chat = ({ sidebar }) => {
     }
   }, [messages]);
 
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [])
+
   // Handle input change from typing
   const handleInputChange = (e) => {
     setInputMessage(e.target.value);  // Set the input value in the state
+
+    const targetDiv = document.getElementById('message-input');
+    if (targetDiv) {
+      targetDiv.click();
+    }
   };
 
 
@@ -284,6 +319,11 @@ const Chat = ({ sidebar }) => {
   // Handle start listening for speech recognition
   const handleStartListening = () => {
     SpeechRecognition.startListening({ language: 'pl-PL' });
+
+    const inputField = document.getElementsByClassName('cs-message-input__content-editor')[0]
+    if (inputField) {
+      inputField.focus();
+    }
   };
 
   // Handle stop listening for speech recognition
@@ -335,11 +375,17 @@ const Chat = ({ sidebar }) => {
               ))}
             </MessageList>
             <MessageInput
+              id='message-input'
               value={inputMessage}
               onChange={handleInputChange}
               onSend={handleSend}
               placeholder="Kliknij Rozpocznij"
               style={{backgroundColor: "#4b5563"}}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSend();
+                }
+              }}
             />
           </ChatContainer>
         </MainContainer>
